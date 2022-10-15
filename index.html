@@ -1,0 +1,264 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery</title>
+    <script  src="/jquery.js"></script>
+
+    <script>
+        $(function(){
+            getdata();
+            
+            
+            
+
+
+            $('#indertData').on('click', function(e){
+              
+        e.preventDefault(); 
+        ajaxcall();
+        });
+
+
+            $("#month").text("month");
+            $('#AddItem').on("keypress",function (e) {
+            var key = e.which;
+            var inputValue = $('#AddItem').val();
+            inputValue =inputValue.trim();
+            if(key == 13)  // the enter key code
+            {
+                $('input[name = butAssignProd]').click();
+              
+                if(inputValue === ""){
+                alert("please add somethig")
+              }else{
+                    $("#items").find("tr").remove();
+                  ajaxcall(inputValue,"false");
+                  getdata();
+                }
+                $(this).val("");
+                return false;  
+            }
+            }); 
+            
+            //var arr =  ['item 1','jitem 2','item 3',"item 4 "];
+
+            
+
+            function ajaxcall(e,d){
+
+                    var set = {
+                        "url":"/grocery/add",
+                        "type": 'post', 
+                        "data":{
+                            "groceryItem":e,
+                            "isPurchased":d
+                        },
+                    };
+                    $.ajax(set).done(function(res){
+
+                        debugger;
+                
+                    });
+                }
+            function getdata(){
+
+                    var set = {
+                        "url":"/grocery/get",
+                        "type": 'get', 
+                        "data":null,
+                    };
+                    $.ajax(set).done(function(res){
+
+                        debugger;
+                        var newres = res;
+                        for(var i = 0; i<newres.length; i++){
+                            var id =  newres[i]._id;
+                            var name =  newres[i].groceryItem;
+                            var checkpur =  newres[i].isPurchased;
+                            
+                           // console.log(nn);
+                            makeTable(name,id,checkpur);
+
+                        }
+                    });
+                }
+            
+            function makeTable(name,id,ispur){
+                debugger;
+                if(ispur == true){
+                    $("#items").append("<tr><td  id="+id+"><s>"+name+"</s></td><td><button id='purBtn'>purchased</button></td><td><button id='itemDel'>X</button></td></tr>")
+                }else{
+                    $("#items").append("<tr><td  id="+id+">"+name+"</td><td><button id='purBtn'>purchased</button></td><td><button id='itemDel'>X</button></td></tr>")
+                }
+
+                checkrows();
+            }
+         function checkrows(){
+
+             var len = document.getElementById("items").rows.length;
+            
+             
+             if(len > 5){
+               
+                 $(".childbox").css("overflow-y","scroll");               
+                }
+            }
+            
+            $("#items").on("click","#itemDel",function(){
+                var $row = $(this).closest("tr")        // Finds the closest row <tr> 
+                    $tds = $row.find("td:first-child").attr("id"); // Finds the 2nd <td> element
+                    $("#items").find("tr").remove();
+                        getdata();
+                        itemDelte($tds);
+                //alert("itemDel");
+            })
+            function itemDelte(e){
+                var set = {
+                        "url":"/grocery/del",
+                        "type": 'delete', 
+                        "data":{
+                            "_id":e
+                        }
+                    };
+                    $.ajax(set).done(function(res){
+
+                        debugger;
+                     
+                    });
+                }
+
+
+                $("#items").on("click","#purBtn",function(){
+                var $row = $(this).closest("tr")        // Finds the closest row <tr> 
+                    $tds = $row.find("td:first-child").attr("id"); // Finds the 2nd <td> element
+                        $("#items").find("tr").remove();
+                        getdata();
+                        itemUpdate($tds);
+               
+            })
+                function itemUpdate(e){
+                var set = {
+                        "url":"/grocery/modify",
+                        "type": 'put', 
+                        "data":{
+                            "_id":e,
+                            "isPurchased":true
+                        }
+                    };
+                    $.ajax(set).done(function(res){
+                    })
+                }
+
+
+
+
+            });
+            </script>
+
+
+<style>
+    .scroll{
+        overflow-y: scroll!important;
+    }
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+       
+    }
+    .header{
+        background-color: black;
+        width: 100%;
+        /* height: 40px; */
+    }
+    .title{
+        color: white;
+        text-align: center;
+        font-size: 32px;
+        padding: 20px 0;
+    }
+    .mainbox{
+        display: flex;
+        height: 90vh;
+        justify-content: center;
+        align-items: center;
+        background-color: #ccc;
+    }
+    .childbox{
+        width: 600px;
+        height: 430px;
+        padding: 3px 5px;
+        border: 1px solid black;
+        background-color: white;
+    }
+    #AddItem{
+        width: 100%;
+        height: 25px;
+        font-size: 18px;
+        padding: 0 10px;
+        border-radius: 3px;
+        outline: none;
+        border: 1px solid #ccc;
+      
+    }
+    #AddItem:focus{
+        outline: none;
+        border: 1px solid #ccc;
+    }
+    #items{
+        background-color: white;
+    }
+    #items tr{
+        margin: 5px 0;
+    }
+    #items td{
+    padding: 3px 40px;
+    }
+    #items td:first-child{
+        width: 230px;
+    }
+    #items td:nth-child(2){
+        width: 70px;
+    }
+    #items td:nth-child(3){
+        width: 20px;
+    }
+    button{
+        background-color: white;
+        color: black;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 4px;
+        border: 1px solid black;
+        padding: 4px 10px;
+    }
+   
+</style>
+
+
+
+</head>
+<body>
+ 
+    <div class="header">
+        <h1 class="title">Monthly Grocery Planning App </h1>
+    </div>
+  
+    
+    <div class="mainbox">
+   
+        <div class="childbox">
+            <h1 style="padding-left :45px;" >Plan for the month of October </h1>
+
+            <div class="listbox">
+                <input type="text" maxlength="15" placeholder="Add Shopping Item" id="AddItem">
+                <table id="items">
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
